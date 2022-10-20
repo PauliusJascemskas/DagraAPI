@@ -89,7 +89,7 @@ namespace ASP.NET_WebAPI6.Controllers
             return HttpStatusCode.Created;
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAssignment(int scheduleId, int jobId, AssignmentDTO assignment)
         {
             var entity = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == assignment.id);

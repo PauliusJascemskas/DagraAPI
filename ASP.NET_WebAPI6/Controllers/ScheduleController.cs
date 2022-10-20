@@ -80,7 +80,7 @@ namespace ASP.NET_WebAPI6.Controllers
             return HttpStatusCode.Created;
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<HttpStatusCode> UpdateSchedule(ScheduleDTO schedule)
         {
             var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == schedule.id);

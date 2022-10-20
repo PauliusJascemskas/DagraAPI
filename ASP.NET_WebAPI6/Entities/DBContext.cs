@@ -12,8 +12,6 @@ namespace ASP.NET_WebAPI6.Entities
             : base(options)
         {
         }
-
-        //public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Schedule> Schedules { get; set; }
         public virtual DbSet<Job> Jobs { get; set; }
         public virtual DbSet<Assignment> Assignments { get; set; }
@@ -28,28 +26,6 @@ namespace ASP.NET_WebAPI6.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<User>(entity =>
-            //{
-            //    entity.ToTable("user");
-
-            //    entity.Property(e => e.Id).HasColumnType("int(11)");
-
-            //    entity.Property(e => e.FirstName)
-            //        .IsRequired()
-            //        .HasMaxLength(45);
-
-            //    entity.Property(e => e.LastName)
-            //        .IsRequired()
-            //        .HasMaxLength(45);
-
-            //    entity.Property(e => e.Password)
-            //        .IsRequired()
-            //        .HasMaxLength(45);
-
-            //    entity.Property(e => e.Username)
-            //        .IsRequired()
-            //        .HasMaxLength(45);
-            //});
 
             //modelBuilder.Entity<Schedule>(entity =>
             //{
