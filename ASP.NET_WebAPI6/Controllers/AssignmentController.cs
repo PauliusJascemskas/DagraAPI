@@ -24,6 +24,9 @@ namespace ASP.NET_WebAPI6.Controllers
                 s => new AssignmentDTO
                 {
                     id = s.id,
+                    name = s.name,
+                    start_time = s.start_time,
+                    end_time = s.end_time,
                     fk_job = s.fk_job,
                     fk_worker = s.fk_worker,
                     fk_schedule = s.fk_schedule,
@@ -47,6 +50,9 @@ namespace ASP.NET_WebAPI6.Controllers
                     s => new AssignmentDTO
                     {
                         id = s.id,
+                        name = s.name,
+                        start_time = s.start_time,
+                        end_time = s.end_time,
                         fk_job = s.fk_job,
                         fk_worker = s.fk_worker,
                         fk_schedule = s.fk_schedule,
@@ -69,6 +75,9 @@ namespace ASP.NET_WebAPI6.Controllers
             var entity = new Assignment()
             {
                 id = assignment.id,
+                name = assignment.name,
+                start_time = assignment.start_time,
+                end_time = assignment.end_time,
                 fk_job = assignment.fk_job,
                 fk_worker = assignment.fk_worker,
                 fk_schedule = assignment.fk_schedule,
@@ -92,6 +101,9 @@ namespace ASP.NET_WebAPI6.Controllers
             else
             {
                 entity.id = assignment.id;
+                entity.name = assignment.name;
+                entity.start_time = assignment.start_time;
+                entity.end_time = assignment.end_time;
                 entity.fk_job = assignment.fk_job;
                 entity.fk_schedule = assignment.fk_schedule;
                 entity.fk_worker = assignment.fk_worker;
@@ -107,6 +119,9 @@ namespace ASP.NET_WebAPI6.Controllers
                     s => new AssignmentDTO
                     {
                         id = s.id,
+                        name = s.name,
+                        start_time = s.start_time,
+                        end_time = s.end_time,
                         fk_job = s.fk_job,
                         fk_schedule = s.fk_schedule,
                         fk_worker = s.fk_worker,

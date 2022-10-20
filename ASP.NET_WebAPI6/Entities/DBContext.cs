@@ -13,7 +13,7 @@ namespace ASP.NET_WebAPI6.Entities
         {
         }
 
-        public virtual DbSet<User> Users { get; set; }
+        //public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Schedule> Schedules { get; set; }
         public virtual DbSet<Job> Jobs { get; set; }
         public virtual DbSet<Assignment> Assignments { get; set; }
