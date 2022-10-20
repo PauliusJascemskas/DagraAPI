@@ -25,6 +25,8 @@ namespace ASP.NET_WebAPI6.Controllers
                 {
                     id = s.id,
                     name = s.name,
+                    start_date = s.start_date,
+                    end_date = s.end_date,
                     fk_schedule = s.fk_schedule,
                 }
             ).ToListAsync();
@@ -47,6 +49,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     {
                         id = s.id,
                         name = s.name,
+                        start_date = s.start_date,
+                        end_date = s.end_date,
                         fk_schedule = s.fk_schedule,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
@@ -68,6 +72,8 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 id = job.id,
                 name = job.name,
+                start_date = job.start_date,
+                end_date = job.end_date,
                 fk_schedule = job.fk_schedule,
             };
 
@@ -90,6 +96,8 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 entity.id = job.id;
                 entity.name = job.name;
+                entity.start_date = job.start_date;
+                entity.end_date = job.end_date;
                 entity.fk_schedule = job.fk_schedule;
                 await DBContext.SaveChangesAsync();
                 return Ok();
@@ -105,6 +113,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     {
                         id = s.id,
                         name = s.name,
+                        start_date = s.start_date,
+                        end_date = s.end_date,
                         fk_schedule = s.fk_schedule,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
