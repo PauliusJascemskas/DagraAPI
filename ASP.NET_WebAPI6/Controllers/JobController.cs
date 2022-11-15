@@ -18,10 +18,10 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<JobDTO>>> Get(int scheduleId)
+        public async Task<ActionResult<List<Job>>> Get(int scheduleId)
         {
             var List = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
-                s => new JobDTO
+                s => new Job
                 {
                     id = s.id,
                     name = s.name,
@@ -42,10 +42,10 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<JobDTO>> GetJobById(int scheduleId, int id)
+        public async Task<ActionResult<Job>> GetJobById(int scheduleId, int id)
         {
-            JobDTO Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
-                    s => new JobDTO
+            Job Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
+                    s => new Job
                     {
                         id = s.id,
                         name = s.name,
@@ -61,32 +61,32 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
-                return Job;
+                return Ok(Job);
             }
         }
 
         [HttpPost]
-        public async Task<HttpStatusCode> InsertJob(int scheduleId, JobDTO job)
+        public async Task<ActionResult> InsertJob(int scheduleId, CreateJobDTO job)
         {
             var entity = new Job()
             {
-                id = job.id,
+                //id = job.id,
                 name = job.name,
                 start_date = job.start_date,
                 end_date = job.end_date,
-                fk_schedule = job.fk_schedule,
+                fk_schedule = scheduleId,
             };
 
             DBContext.Jobs.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return HttpStatusCode.Created;
+            return Created($"api/schedules/{scheduleId}/jobs/{entity.id}", entity);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateJob(int scheduleId, JobDTO job)
+        public async Task<ActionResult> UpdateJob(int scheduleId, int id, JobDTO job)
         {
-            var entity = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).FirstOrDefaultAsync(s => s.id == job.id);
+            var entity = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).FirstOrDefaultAsync(s => s.id == id);
 
             if (entity == null)
             {
@@ -94,13 +94,13 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
-                entity.id = job.id;
+                entity.id = id;
                 entity.name = job.name;
                 entity.start_date = job.start_date;
                 entity.end_date = job.end_date;
-                entity.fk_schedule = job.fk_schedule;
+                entity.fk_schedule = scheduleId;
                 await DBContext.SaveChangesAsync();
-                return Ok();
+                return Ok(entity);
             }
             
         }
@@ -108,8 +108,8 @@ namespace ASP.NET_WebAPI6.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteJob(int scheduleId, int id)
         {
-            JobDTO Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
-                    s => new JobDTO
+            Job Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
+                    s => new Job
                     {
                         id = s.id,
                         name = s.name,

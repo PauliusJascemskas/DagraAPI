@@ -18,10 +18,10 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AssignmentDTO>>> Get(int scheduleId, int jobId)
+        public async Task<ActionResult<List<Assignment>>> Get(int scheduleId, int jobId)
         {
             var List = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
-                s => new AssignmentDTO
+                s => new Assignment
                 {
                     id = s.id,
                     name = s.name,
@@ -44,10 +44,10 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<AssignmentDTO>> GetAssignmentById(int scheduleId, int jobId, int id)
+        public async Task<ActionResult<Assignment>> GetAssignmentById(int scheduleId, int jobId, int id)
         {
-            AssignmentDTO Assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
-                    s => new AssignmentDTO
+            Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
+                    s => new Assignment
                     {
                         id = s.id,
                         name = s.name,
@@ -70,29 +70,29 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpPost]
-        public async Task<HttpStatusCode> InsertAssignment(int scheduleId, int jobId, AssignmentDTO assignment)
+        public async Task<ActionResult> InsertAssignment(int scheduleId, int jobId, CreateAssignmentDTO assignment)
         {
             var entity = new Assignment()
             {
-                id = assignment.id,
+                //id = assignment.id,
                 name = assignment.name,
                 start_time = assignment.start_time,
                 end_time = assignment.end_time,
-                fk_job = assignment.fk_job,
+                fk_job = jobId,
                 fk_worker = assignment.fk_worker,
-                fk_schedule = assignment.fk_schedule,
+                fk_schedule = scheduleId,
             };
 
             DBContext.Assignments.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return HttpStatusCode.Created;
+            return Created($"api/schedules/{scheduleId}/jobs/{jobId}/assignments/{assignment.id}", entity);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAssignment(int scheduleId, int jobId, AssignmentDTO assignment)
+        public async Task<ActionResult> UpdateAssignment(int scheduleId, int jobId, int id, AssignmentDTO assignment)
         {
-            var entity = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == assignment.id);
+            var entity = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == id);
 
             if (entity == null)
             {
@@ -100,23 +100,23 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
-                entity.id = assignment.id;
+                entity.id = entity.id;
                 entity.name = assignment.name;
                 entity.start_time = assignment.start_time;
                 entity.end_time = assignment.end_time;
-                entity.fk_job = assignment.fk_job;
-                entity.fk_schedule = assignment.fk_schedule;
+                entity.fk_job = jobId;
+                entity.fk_schedule = scheduleId;
                 entity.fk_worker = assignment.fk_worker;
                 await DBContext.SaveChangesAsync();
-                return Ok();
+                return Ok(entity);
             }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAssignment(int scheduleId, int jobId, int id)
         {
-            AssignmentDTO assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
-                    s => new AssignmentDTO
+            Assignment assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
+                    s => new Assignment
                     {
                         id = s.id,
                         name = s.name,

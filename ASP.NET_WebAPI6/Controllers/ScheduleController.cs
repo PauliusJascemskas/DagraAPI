@@ -1,5 +1,6 @@
 ﻿using ASP.NET_WebAPI6.DTO;
 using ASP.NET_WebAPI6.Entities;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -11,17 +12,22 @@ namespace ASP.NET_WebAPI6.Controllers
     public class ScheduleController : ControllerBase
     {
         private readonly DBContext DBContext;
+        private readonly IMapper _mapper;
 
         public ScheduleController(DBContext DBContext)
         {
             this.DBContext = DBContext;
+            var config = new MapperConfiguration(cfg =>
+                    cfg.CreateMap<Schedule, ScheduleDTO>()
+                ) ;
+            _mapper = new Mapper(config);
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ScheduleDTO>>> Get()
+        public async Task<ActionResult<List<Schedule>>> Get()
         {
             var List = await DBContext.Schedules.Select(
-                s => new ScheduleDTO
+                s => new Schedule
                 {
                     id = s.id,
                     name = s.name,
@@ -41,10 +47,10 @@ namespace ASP.NET_WebAPI6.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ScheduleDTO>> GetScheduleById(int id)
+        public async Task<ActionResult<Schedule>> GetScheduleById(int id)
         {
-            ScheduleDTO Schedule = await DBContext.Schedules.Select(
-                    s => new ScheduleDTO
+            Schedule Schedule = await DBContext.Schedules.Select(
+                    s => new Schedule
                     {
                         id = s.id,
                         name = s.name,
@@ -59,16 +65,15 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
-                return Schedule;
+                return Ok(Schedule);
             }
         }
 
         [HttpPost]
-        public async Task<HttpStatusCode> InsertSchedule(ScheduleDTO schedule)
+        public async Task<ActionResult> InsertSchedule(Schedule schedule)
         {
             var entity = new Schedule()
             {
-                id = schedule.id,
                 name = schedule.name,
                 company = schedule.company,
                 admin = schedule.admin,
@@ -77,26 +82,40 @@ namespace ASP.NET_WebAPI6.Controllers
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return HttpStatusCode.Created;
+            return Created($"api/schedules/{schedule.id}", entity);
         }
 
         [HttpPut("{id}")]
-        public async Task<HttpStatusCode> UpdateSchedule(ScheduleDTO schedule)
+        public async Task<ActionResult> UpdateSchedule(int id, ScheduleDTO schedule)
         {
-            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == schedule.id);
+            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id);
 
-            entity.id = schedule.id;
+            //entity.id = id;
             entity.name = schedule.name;
             entity.company = schedule.company;
-            entity.admin = schedule.admin;
+            entity.admin = schedule.admin; 
 
             await DBContext.SaveChangesAsync();
-            return HttpStatusCode.OK;
+            return Ok(entity);
         }
 
         [HttpDelete("{id}")]
-        public async Task<HttpStatusCode> DeleteSchedule(int id)
+        public async Task<ActionResult> DeleteSchedule(int id)
         {
+            Schedule Schedule = await DBContext.Schedules.Select(
+                    s => new Schedule
+                    {
+                        id = s.id,
+                        name = s.name,
+                        company = s.company,
+                        admin = s.admin,
+                    })
+                .FirstOrDefaultAsync(s => s.id == id);
+
+            if (Schedule == null)
+            {
+                return NotFound();
+            }
             var entity = new Schedule()
             {
                 id = id
@@ -104,7 +123,7 @@ namespace ASP.NET_WebAPI6.Controllers
             DBContext.Schedules.Attach(entity);
             DBContext.Schedules.Remove(entity);
             await DBContext.SaveChangesAsync();
-            return HttpStatusCode.OK;
+            return NoContent();
         }
     }
 }
