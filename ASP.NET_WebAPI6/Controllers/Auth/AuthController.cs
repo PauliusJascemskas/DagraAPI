@@ -66,12 +66,12 @@ namespace DagraAPI.Controllers.Auth
                     }
                     else
                     {
-                        responseLogin.MessageList.Add("Password is wrong");
+                        responseLogin.MessageList.Add("Neteisingas slaptažodis.");
                     }
                 }
                 else
                 {
-                    responseLogin.MessageList.Add("Email is wrong");
+                    responseLogin.MessageList.Add("Tokia elektroninio pašto sistemoje nėra.");
                 }
             }
             return responseLogin;
@@ -101,7 +101,7 @@ namespace DagraAPI.Controllers.Auth
 
             if (User != null)
             {
-                return BadRequest("Request invalid.");
+                return BadRequest("Toks vartotojas jau yra.");
             }
             var password = requestRegister.password;
             var hashedPassword = CryptoUtil.Hash(password);
@@ -141,7 +141,7 @@ namespace DagraAPI.Controllers.Auth
 
             if (User != null)
             {
-                return BadRequest("Request invalid.");
+                return BadRequest("Toks vartotojas jau yra.");
             }
             var password = requestRegister.password;
             var hashedPassword = CryptoUtil.Hash(password);
