@@ -24,7 +24,7 @@ namespace DagraAPI
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySQL("server=localhost;port=3306;user=root;password=;database=dagra");
+                optionsBuilder.UseMySQL("server=dagradb.mariadb.database.azure.com;port=3306;user=dbroot@dagradb;password=Admin123;database=dagradb;");
             }
         }
 
