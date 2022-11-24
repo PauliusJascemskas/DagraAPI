@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ASP.NET_WebAPI6.Entities;
+using DagraAPI.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
-namespace ASP.NET_WebAPI6.Entities
+namespace DagraAPI
 {
     public partial class DBContext : DbContext
     {
@@ -14,6 +17,7 @@ namespace ASP.NET_WebAPI6.Entities
         }
         public virtual DbSet<Schedule> Schedules { get; set; }
         public virtual DbSet<Job> Jobs { get; set; }
+        public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Assignment> Assignments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -26,6 +30,41 @@ namespace ASP.NET_WebAPI6.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //modelBuilder.Entity<User>(entity =>
+            //{
+            //    entity.ToTable("user");
+
+            //    entity.HasIndex(e => e.email)
+            //        .HasName("IX_EMAIL");
+
+            //    entity.Property(e => e.id)
+            //        .HasColumnName("ID")
+            //        .HasColumnType("int(11)");
+
+            //    entity.Property(e => e.email)
+            //        .IsRequired()
+            //        .HasColumnName("EMAIL")
+            //        .HasColumnType("varchar(50)")
+            //        .HasDefaultValueSql("'0'");
+
+            //    entity.Property(e => e.password)
+            //        .IsRequired()
+            //        .HasColumnName("PASSWORD")
+            //        .HasColumnType("varchar(128)")
+            //        .HasDefaultValueSql("'0'");
+
+            //    entity.Property(e => e.role)
+            //        .IsRequired()
+            //        .HasColumnName("ROLE")
+            //        .HasColumnType("varchar(20)")
+            //        .HasDefaultValueSql("'0'");
+
+            //    entity.Property(e => e.salt)
+            //        .IsRequired()
+            //        .HasColumnName("SALT")
+            //        .HasColumnType("varchar(36)")
+            //        .HasDefaultValueSql("'0'");
+            //});
 
             //modelBuilder.Entity<Schedule>(entity =>
             //{
@@ -75,9 +114,10 @@ namespace ASP.NET_WebAPI6.Entities
             //    entity.Property(e => e.admin).HasColumnType("int(11)");
             //});
 
-            OnModelCreatingPartial(modelBuilder);
-        }
+            //    OnModelCreatingPartial(modelBuilder);
+            //}
 
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+            //partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+        }
     }
 }

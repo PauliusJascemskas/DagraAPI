@@ -1,7 +1,11 @@
 ﻿using ASP.NET_WebAPI6.DTO;
 using ASP.NET_WebAPI6.Entities;
+using DagraAPI;
+using DagraAPI.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Net;
 
 namespace ASP.NET_WebAPI6.Controllers
@@ -17,10 +21,11 @@ namespace ASP.NET_WebAPI6.Controllers
             this.DBContext = DBContext;
         }
 
+        [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
         public async Task<ActionResult<List<Assignment>>> Get(int scheduleId, int jobId)
         {
-            var List = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
+            var List = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
                 s => new Assignment
                 {
                     id = s.id,
@@ -29,7 +34,6 @@ namespace ASP.NET_WebAPI6.Controllers
                     end_time = s.end_time,
                     fk_job = s.fk_job,
                     fk_worker = s.fk_worker,
-                    fk_schedule = s.fk_schedule,
                 }
             ).ToListAsync();
 
@@ -43,10 +47,11 @@ namespace ASP.NET_WebAPI6.Controllers
             }
         }
 
+        [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Assignment>> GetAssignmentById(int scheduleId, int jobId, int id)
         {
-            Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
+            Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
                     s => new Assignment
                     {
                         id = s.id,
@@ -55,7 +60,6 @@ namespace ASP.NET_WebAPI6.Controllers
                         end_time = s.end_time,
                         fk_job = s.fk_job,
                         fk_worker = s.fk_worker,
-                        fk_schedule = s.fk_schedule,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
@@ -69,18 +73,29 @@ namespace ASP.NET_WebAPI6.Controllers
             }
         }
 
+        [Authorize(Roles = "admin, worker")]
         [HttpPost]
         public async Task<ActionResult> InsertAssignment(int scheduleId, int jobId, CreateAssignmentDTO assignment)
         {
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
             var entity = new Assignment()
             {
-                //id = assignment.id,
                 name = assignment.name,
+                creator = user.id,
                 start_time = assignment.start_time,
                 end_time = assignment.end_time,
                 fk_job = jobId,
                 fk_worker = assignment.fk_worker,
-                fk_schedule = scheduleId,
             };
 
             DBContext.Assignments.Add(entity);
@@ -89,10 +104,22 @@ namespace ASP.NET_WebAPI6.Controllers
             return Created($"api/schedules/{scheduleId}/jobs/{jobId}/assignments/{assignment.id}", entity);
         }
 
+        [Authorize(Roles = "admin, worker")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAssignment(int scheduleId, int jobId, int id, AssignmentDTO assignment)
         {
-            var entity = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == id);
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
+            var entity = await DBContext.Assignments.Where(s => s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == id);
 
             if (entity == null)
             {
@@ -100,22 +127,38 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
+                if(user.role == "Worker" && entity.creator != user.id)
+                {
+                    return Unauthorized();
+                }
                 entity.id = entity.id;
                 entity.name = assignment.name;
+                entity.creator = entity.creator;
                 entity.start_time = assignment.start_time;
                 entity.end_time = assignment.end_time;
                 entity.fk_job = jobId;
-                entity.fk_schedule = scheduleId;
                 entity.fk_worker = assignment.fk_worker;
                 await DBContext.SaveChangesAsync();
                 return Ok(entity);
             }
         }
 
+        [Authorize(Roles = "admin, worker")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAssignment(int scheduleId, int jobId, int id)
         {
-            Assignment assignment = await DBContext.Assignments.Where(s => s.fk_schedule == scheduleId && s.fk_job == jobId).Select(
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
+            Assignment assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
                     s => new Assignment
                     {
                         id = s.id,
@@ -123,7 +166,6 @@ namespace ASP.NET_WebAPI6.Controllers
                         start_time = s.start_time,
                         end_time = s.end_time,
                         fk_job = s.fk_job,
-                        fk_schedule = s.fk_schedule,
                         fk_worker = s.fk_worker,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
@@ -134,6 +176,10 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
+                if(user.role == "Worker" && assignment.creator != user.id)
+                {
+                    return Unauthorized();
+                }
                 var entity = new Assignment()
                 {
                     id = id

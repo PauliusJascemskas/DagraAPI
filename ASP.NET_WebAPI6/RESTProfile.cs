@@ -6,7 +6,7 @@
 //namespace DagraAPI.Controllers
 //{
 //    public class RESTProfile
-//    { 
+//    {
 //        CreateMap<Schedule, ScheduleDTO>();
 //            CreateMap<CreateTopicDto, Topic>();
 //            CreateMap<UpdateTopicDto, Topic>();

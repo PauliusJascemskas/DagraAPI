@@ -1,15 +1,21 @@
 ﻿using ASP.NET_WebAPI6.DTO;
 using ASP.NET_WebAPI6.Entities;
 using AutoMapper;
+using DagraAPI;
+using DagraAPI.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NetCoreAuthJwtMySql.Models.Requests;
 using System.Net;
+using System.Security.Claims;
 
 namespace ASP.NET_WebAPI6.Controllers
 {
     [ApiController]
     [Route("api/schedules")]
-    public class ScheduleController : ControllerBase
+    public class ScheduleController : ControllerBase            //todo fix schedule DTO
     {
         private readonly DBContext DBContext;
         private readonly IMapper _mapper;
@@ -23,19 +29,32 @@ namespace ASP.NET_WebAPI6.Controllers
             _mapper = new Mapper(config);
         }
 
+        [Authorize(Roles ="admin, worker, guest")]
         [HttpGet]
         public async Task<ActionResult<List<Schedule>>> Get()
         {
-            var List = await DBContext.Schedules.Select(
-                s => new Schedule
+            User user = await DBContext.Users.Select(
+                s => new User
                 {
                     id = s.id,
                     name = s.name,
-                    company = s.company,
-                    admin = s.admin,
-                }
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            int company;
+            List<Schedule> List;
+            company = user.fk_company;
+            List = await DBContext.Schedules.Where(s => s.fk_company == company).Select(
+            s => new Schedule
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                admin = s.admin,
+            }
             ).ToListAsync();
-
             if (List.Count < 0)
             {
                 return NotFound();
@@ -46,71 +65,166 @@ namespace ASP.NET_WebAPI6.Controllers
             }
         }
 
+
+        [Authorize(Roles = "admin, worker")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Schedule>> GetScheduleById(int id)
         {
-            Schedule Schedule = await DBContext.Schedules.Select(
-                    s => new Schedule
-                    {
-                        id = s.id,
-                        name = s.name,
-                        company = s.company,
-                        admin = s.admin,
-                    })
-                .FirstOrDefaultAsync(s => s.id == id);
 
-            if (Schedule == null)
+            User user = await DBContext.Users.Select(
+            s => new User
             {
-                return NotFound();
-            }
-            else
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            int company;
+            Schedule schedule;
+            if (user != null)
             {
-                return Ok(Schedule);
+                company = user.fk_company;
+                schedule = await DBContext.Schedules.Select(
+                s => new Schedule
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    admin = s.admin,
+                }
+                ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+                if (schedule == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return schedule;
+                }
             }
+            else return NotFound();
+            //Schedule Schedule = await DBContext.Schedules.Select(
+            //        s => new Schedule
+            //        {
+            //            id = s.id,
+            //            name = s.name,
+            //            fk_company = s.fk_company,
+            //            admin = s.admin,
+            //        })
+            //    .FirstOrDefaultAsync(s => s.id == id);
+
+            //if (Schedule == null)
+            //{
+            //    return NotFound();
+            //}
+            //else
+            //{
+            //    return Ok(Schedule);
+            //}
         }
 
+
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> InsertSchedule(Schedule schedule)
         {
+            User user = await DBContext.Users.Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            int company = user.fk_company;
+
             var entity = new Schedule()
             {
                 name = schedule.name,
-                company = schedule.company,
-                admin = schedule.admin,
+                fk_company = company,
+                admin = user.id
             };
 
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
 
             return Created($"api/schedules/{schedule.id}", entity);
+
+            //var entity = new Schedule()
+            //{
+            //    name = schedule.name,
+            //    fk_company = schedule.fk_company,
+            //    admin = schedule.admin,
+            //};
+
+            //DBContext.Schedules.Add(entity);
+            //await DBContext.SaveChangesAsync();
+
+            //return Created($"api/schedules/{schedule.id}", entity);
         }
 
+
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateSchedule(int id, ScheduleDTO schedule)
         {
-            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id);
+            User user = await DBContext.Users.Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            int company = user.fk_company;
 
-            //entity.id = id;
+            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+
+            if(entity == null)
+            {
+                return NotFound();
+            }
             entity.name = schedule.name;
-            entity.company = schedule.company;
-            entity.admin = schedule.admin; 
+            entity.fk_company = user.fk_company;          
+            entity.admin = user.id; 
 
             await DBContext.SaveChangesAsync();
             return Ok(entity);
         }
 
+
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteSchedule(int id)
         {
+            User user = await DBContext.Users.Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            int company = user.fk_company;
+
             Schedule Schedule = await DBContext.Schedules.Select(
                     s => new Schedule
                     {
                         id = s.id,
                         name = s.name,
-                        company = s.company,
+                        fk_company = s.fk_company,
                         admin = s.admin,
                     })
-                .FirstOrDefaultAsync(s => s.id == id);
+                .FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+
 
             if (Schedule == null)
             {

@@ -1,33 +1,44 @@
+﻿using DemoRestSimonas.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ASP.NET_WebAPI6.Entities;
-using Microsoft.EntityFrameworkCore;
-using MySql.EntityFrameworkCore.Extensions;
+using DagraAPI;
+using Microsoft.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddEntityFrameworkMySQL()
-                .AddDbContext<DBContext>(options =>
-                {
-                    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection"));
-                });
-builder.Services.AddControllers();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-//Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+namespace ASP.NET_WebAPI6
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    public class Program
+    {
+        public static async Task Main(string[] args)
+        {
+            CreateWebHostBuilder(args).Build().Run();
+
+            //var host = CreateHostBuilder(args).Build();
+
+            //using var scope = host.Services.CreateScope();
+            //var dbSeeder = (DatabaseSeeder)scope.ServiceProvider.GetService(typeof(DatabaseSeeder));
+            //await dbSeeder.SeedAsync();
+
+            //await host.RunAsync();
+        }
+
+        public static IHostBuilder CreateWebHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+
+
+
+
+        //public static IHostBuilder CreateHostBuilder(string[] args) =>
+        //    Host.CreateDefaultBuilder(args)
+        //        .ConfigureWebHostDefaults(webBuilder =>
+        //        {
+        //            webBuilder.UseStartup<Startup>();
+        //        });
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
