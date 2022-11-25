@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetCoreAuthJwtMySql.Models.Requests;
+using System.ComponentModel.Design;
 using System.Net;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ASP.NET_WebAPI6.Controllers
 {
@@ -43,34 +45,58 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company;
-            List<Schedule> List;
-            company = user.fk_company;
-            List = await DBContext.Schedules.Where(s => s.fk_company == company).Select(
-            s => new Schedule
+            if (user.role != "guest")
             {
-                id = s.id,
-                name = s.name,
-                fk_company = s.fk_company,
-                admin = s.admin,
-            }
-            ).ToListAsync();
-            if (List.Count < 0)
-            {
-                return NotFound();
+                int company;
+                List<Schedule> List;
+                company = user.fk_company;
+                List = await DBContext.Schedules.Where(s => s.fk_company == company).Select(
+                s => new Schedule
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    admin = s.admin,
+                }
+                ).ToListAsync();
+                if (List.Count < 0)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return List;
+                }
             }
             else
             {
-                return List;
+                List<Schedule> List;
+                int company = user.fk_company;
+                List = await DBContext.Schedules.Select(
+                s => new Schedule
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    admin = s.admin,
+                }
+                ).ToListAsync();
+                if (List.Count < 0)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return List;
+                }
             }
         }
 
 
-        [Authorize(Roles = "admin, worker")]
+        [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Schedule>> GetScheduleById(int id)
+        public async Task<ActionResult<Schedule>> GetScheduleById(int companyId, int id)
         {
-
             User user = await DBContext.Users.Select(
             s => new User
             {
@@ -81,30 +107,72 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company;
-            Schedule schedule;
-            if (user != null)
+            if (user.role != "guest")
             {
-                company = user.fk_company;
-                schedule = await DBContext.Schedules.Select(
-                s => new Schedule
+                int company;
+                Schedule schedule;
+                if (companyId != user.fk_company)
                 {
-                    id = s.id,
-                    name = s.name,
-                    fk_company = s.fk_company,
-                    admin = s.admin,
+                    return NoContent();
                 }
-                ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-                if (schedule == null)
+                if (user != null)
                 {
-                    return NotFound();
+                    company = user.fk_company;
+                    schedule = await DBContext.Schedules.Select(
+                    s => new Schedule
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        admin = s.admin,
+                    }
+                    ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+                    if (companyId != schedule.fk_company)
+                    {
+                        return NoContent();
+                    }
+                    if (schedule == null)
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        return schedule;
+                    }
                 }
-                else
-                {
-                    return schedule;
-                }
+                else return NotFound();
             }
-            else return NotFound();
+            else
+            {
+                int company;
+                Schedule schedule;
+                if (companyId != user.fk_company)
+                {
+                    return NoContent();
+                }
+                if (user != null)
+                {
+                    company = user.fk_company;
+                    schedule = await DBContext.Schedules.Select(
+                    s => new Schedule
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        admin = s.admin,
+                    }
+                    ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+                    if (schedule == null)
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        return schedule;
+                    }
+                }
+                else return NotFound();
+            }
         }
 
 
@@ -124,7 +192,10 @@ namespace ASP.NET_WebAPI6.Controllers
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
             int company = user.fk_company;
-            
+            if (companyId != user.fk_company)
+            {
+                return Unauthorized();
+            }
 
             var entity = new Schedule()
             {
@@ -132,7 +203,10 @@ namespace ASP.NET_WebAPI6.Controllers
                 fk_company = companyId,
                 admin = user.id
             };
-
+            if (companyId != entity.fk_company)
+            {
+                return NoContent();
+            }
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
 
@@ -167,10 +241,16 @@ namespace ASP.NET_WebAPI6.Controllers
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
             int company = user.fk_company;
-
+            if (companyid != user.fk_company)
+            {
+                return NoContent();
+            }
             var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-
-            if(entity == null)
+            if (companyid != entity.fk_company)
+            {
+                return NoContent();
+            }
+            if (entity == null)
             {
                 return NotFound();
             }
@@ -199,6 +279,11 @@ namespace ASP.NET_WebAPI6.Controllers
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
             int company = user.fk_company;
 
+            if (companyId != user.fk_company)
+            {
+                return NoContent();
+            }
+
             Schedule Schedule = await DBContext.Schedules.Select(
                     s => new Schedule
                     {
@@ -209,6 +294,10 @@ namespace ASP.NET_WebAPI6.Controllers
                     })
                 .FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
 
+            if (companyId != Schedule.fk_company)
+            {
+                return NoContent();
+            }
 
             if (Schedule == null)
             {

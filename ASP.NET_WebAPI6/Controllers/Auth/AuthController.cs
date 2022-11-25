@@ -123,6 +123,46 @@ namespace DagraAPI.Controllers.Auth
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("registerguest")]
+        public async Task<IActionResult> RegisterGuest(RequestRegisterGuest requestRegister)
+        {
+
+            User User = await DBContext.Users.Select(
+                    s => new User
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        email = s.email,
+                        role = s.role,
+                        password = s.password
+                    })
+                .FirstOrDefaultAsync(s => s.email == requestRegister.email);
+
+            if (User != null)
+            {
+                return BadRequest("Toks vartotojas jau yra.");
+            }
+            var password = requestRegister.password;
+            var hashedPassword = CryptoUtil.Hash(password);
+            var user = new User()
+            {
+                name = requestRegister.name,
+                email = requestRegister.email,
+                password = hashedPassword,
+                role = "Worker",
+                fk_company = -1,
+            };
+
+            DBContext.Users.Add(user);
+            await DBContext.SaveChangesAsync();
+
+            return Created($"api/registerguest/", user);
+
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
         [Route("registeradmin")]
         public async Task<IActionResult> RegisterAdmin(RequestRegister requestRegister)
         {

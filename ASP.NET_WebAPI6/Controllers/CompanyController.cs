@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetCoreAuthJwtMySql.Models.Requests;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Net;
 using System.Security.Claims;
 
@@ -44,33 +46,65 @@ namespace ASP.NET_WebAPI6.Controllers
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            int company_id;
-            company_id = user.fk_company;
-            List<Company> list = new List<Company>();
-            Company company = await DBContext.Companies.Select(
+            if (user.role != "guest")
+            {
+                int company_id;
+                company_id = user.fk_company;
+                List<Company> list = new List<Company>();
+                Company company = await DBContext.Companies.Select(
+                    s => new Company
+                    {
+                        id = s.id,
+                        name = s.name,
+                        code = s.code,
+                        fk_admin = s.fk_admin
+                    })
+                .FirstOrDefaultAsync(s => s.id == company_id);
+
+                if (company == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    list.Add(company);
+                    return list;
+                }
+            }
+            else
+            {
+                //List<Company> list = new List<Company>();
+                //Company company = await DBContext.Companies.Select(
+                //    s => new Company
+                //    {
+                //        id = s.id,
+                //        name = s.name,
+                //        code = s.code,
+                //        fk_admin = s.fk_admin
+                //    })
+                //.FirstOrDefaultAsync(s => s.id == company_id);
+                List<Company> List = await DBContext.Companies.Select(
                 s => new Company
                 {
                     id = s.id,
                     name = s.name,
                     code = s.code,
                     fk_admin = s.fk_admin
-                })
-            .FirstOrDefaultAsync(s => s.id == company_id);
-
-            if (company == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                list.Add(company);
-                return list;
+                }).ToListAsync();
+                if (List == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return List;
+                }
             }
         }
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<Company>>> GetCompanyById()
+        public async Task<ActionResult<List<Company>>> GetCompanyById(int companyId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -82,6 +116,14 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
+            if (user.role != "guest")
+            {
+                if (companyId != user.fk_company)
+                {
+                    return NoContent();
+                }
+            }
 
             int company_id;
             company_id = user.fk_company;
@@ -187,9 +229,14 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company_id = user.fk_company;
 
-            if(company_id == 0)
+            int company_id = user.fk_company;
+            if (id != user.fk_company)
+            {
+                return NoContent();
+            }
+
+            if (company_id == 0)
             {
                 return NotFound();
             }
@@ -228,7 +275,11 @@ namespace ASP.NET_WebAPI6.Controllers
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
             int company_id = user.fk_company;
 
-            if(company_id != id)
+            if (id != user.fk_company)
+            {
+                return NoContent();
+            }
+            if (company_id != id)
             {
                 return NotFound();
             }
