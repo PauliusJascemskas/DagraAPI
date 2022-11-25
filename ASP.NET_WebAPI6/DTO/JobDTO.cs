@@ -11,7 +11,7 @@ namespace ASP.NET_WebAPI6.Entities
     }
     public partial class CreateJobDTO
     {
-        public int id { get; set; }
+        //public int id { get; set; }
         public string name { get; set; }
         public DateTime start_date { get; set; }
         public DateTime end_date { get; set; }

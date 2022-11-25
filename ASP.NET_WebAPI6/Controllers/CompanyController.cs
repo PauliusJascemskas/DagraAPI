@@ -68,66 +68,44 @@ namespace ASP.NET_WebAPI6.Controllers
             }
         }
 
+        [Authorize(Roles = "admin, worker, guest")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<List<Company>>> GetCompanyById()
+        {
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-        //[Authorize(Roles = "admin, worker")]
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Schedule>> GetScheduleById(int id)
-        //{
+            int company_id;
+            company_id = user.fk_company;
+            List<Company> list = new List<Company>();
+            Company company = await DBContext.Companies.Select(
+                s => new Company
+                {
+                    id = s.id,
+                    name = s.name,
+                    code = s.code,
+                    fk_admin = s.fk_admin
+                })
+            .FirstOrDefaultAsync(s => s.id == company_id);
 
-        //    User user = await DBContext.Users.Select(
-        //    s => new User
-        //    {
-        //        id = s.id,
-        //        name = s.name,
-        //        fk_company = s.fk_company,
-        //        email = s.email,
-        //        role = s.role,
-        //        password = s.password
-        //    }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-        //    int company;
-        //    Schedule schedule;
-        //    if (user != null)
-        //    {
-        //        company = user.fk_company;
-        //        schedule = await DBContext.Schedules.Select(
-        //        s => new Schedule
-        //        {
-        //            id = s.id,
-        //            name = s.name,
-        //            fk_company = s.fk_company,
-        //            admin = s.admin,
-        //        }
-        //        ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-        //        if (schedule == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            return schedule;
-        //        }
-        //    }
-        //    else return NotFound();
-        //    //Schedule Schedule = await DBContext.Schedules.Select(
-        //    //        s => new Schedule
-        //    //        {
-        //    //            id = s.id,
-        //    //            name = s.name,
-        //    //            fk_company = s.fk_company,
-        //    //            admin = s.admin,
-        //    //        })
-        //    //    .FirstOrDefaultAsync(s => s.id == id);
-
-        //    //if (Schedule == null)
-        //    //{
-        //    //    return NotFound();
-        //    //}
-        //    //else
-        //    //{
-        //    //    return Ok(Schedule);
-        //    //}
-        //}
-
+            if (company == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                list.Add(company);
+                return list;
+            }
+        }
 
         [Authorize(Roles = "admin")]
         [HttpPost]
@@ -192,17 +170,6 @@ namespace ASP.NET_WebAPI6.Controllers
 
             return Created($"api/company/{newCompanyId}", comp2);
 
-            //var entity = new Schedule()
-            //{
-            //    name = schedule.name,
-            //    fk_company = schedule.fk_company,
-            //    admin = schedule.admin,
-            //};
-
-            //DBContext.Schedules.Add(entity);
-            //await DBContext.SaveChangesAsync();
-
-            //return Created($"api/schedules/{schedule.id}", entity);
         }
 
 

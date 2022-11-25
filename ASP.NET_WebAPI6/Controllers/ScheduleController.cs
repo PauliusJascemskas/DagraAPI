@@ -105,24 +105,6 @@ namespace ASP.NET_WebAPI6.Controllers
                 }
             }
             else return NotFound();
-            //Schedule Schedule = await DBContext.Schedules.Select(
-            //        s => new Schedule
-            //        {
-            //            id = s.id,
-            //            name = s.name,
-            //            fk_company = s.fk_company,
-            //            admin = s.admin,
-            //        })
-            //    .FirstOrDefaultAsync(s => s.id == id);
-
-            //if (Schedule == null)
-            //{
-            //    return NotFound();
-            //}
-            //else
-            //{
-            //    return Ok(Schedule);
-            //}
         }
 
 
@@ -142,6 +124,7 @@ namespace ASP.NET_WebAPI6.Controllers
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
             int company = user.fk_company;
+            
 
             var entity = new Schedule()
             {
