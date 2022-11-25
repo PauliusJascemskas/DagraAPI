@@ -33,7 +33,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     start_time = s.start_time,
                     end_time = s.end_time,
                     fk_job = s.fk_job,
-                    fk_worker = s.fk_worker,
+                    fk_assignee = s.fk_assignee,
                 }
             ).ToListAsync();
 
@@ -59,7 +59,7 @@ namespace ASP.NET_WebAPI6.Controllers
                         start_time = s.start_time,
                         end_time = s.end_time,
                         fk_job = s.fk_job,
-                        fk_worker = s.fk_worker,
+                        fk_assignee = s.fk_assignee,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
@@ -95,7 +95,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 start_time = assignment.start_time,
                 end_time = assignment.end_time,
                 fk_job = jobId,
-                fk_worker = assignment.fk_worker,
+                fk_assignee = assignment.fk_assignee,
             };
 
             DBContext.Assignments.Add(entity);
@@ -137,7 +137,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 entity.start_time = assignment.start_time;
                 entity.end_time = assignment.end_time;
                 entity.fk_job = jobId;
-                entity.fk_worker = assignment.fk_worker;
+                entity.fk_assignee = assignment.fk_assignee;
                 await DBContext.SaveChangesAsync();
                 return Ok(entity);
             }
@@ -166,7 +166,7 @@ namespace ASP.NET_WebAPI6.Controllers
                         start_time = s.start_time,
                         end_time = s.end_time,
                         fk_job = s.fk_job,
-                        fk_worker = s.fk_worker,
+                        fk_assignee = s.fk_assignee,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 

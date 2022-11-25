@@ -8,6 +8,6 @@
         public DateTime start_time { get; set; }
         public DateTime end_time { get; set; }
         public int fk_job { get; set; }
-        public int fk_worker { get; set; }
+        public int fk_assignee { get; set; }
     }
 }

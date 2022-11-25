@@ -9,7 +9,7 @@ namespace ASP.NET_WebAPI6.Entities
         public DateTime start_time { get; set; }
         public DateTime end_time { get; set; }
         //public int fk_job { get; set; }
-        public int fk_worker { get; set; }
+        public int fk_assignee { get; set; }
         //public int fk_schedule { get; set; }
 
     }
@@ -21,7 +21,7 @@ namespace ASP.NET_WebAPI6.Entities
         public DateTime start_time { get; set; }
         public DateTime end_time { get; set; }
         //public int fk_job { get; set; }
-        public int fk_worker { get; set; }
+        public int fk_assignee { get; set; }
         //public int fk_schedule { get; set; }
     }
 
