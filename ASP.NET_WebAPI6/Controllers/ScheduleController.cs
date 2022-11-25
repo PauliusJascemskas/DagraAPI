@@ -154,7 +154,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateSchedule(int companyid, int id, ScheduleDTO schedule)
+        public async Task<ActionResult> UpdateSchedule(int companyid, int id, UpdateScheduleDTO schedule)
         {
             User user = await DBContext.Users.Select(
             s => new User

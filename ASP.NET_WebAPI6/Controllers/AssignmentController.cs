@@ -101,7 +101,7 @@ namespace ASP.NET_WebAPI6.Controllers
             DBContext.Assignments.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/schedules/{scheduleId}/jobs/{jobId}/assignments/{entity.id}", entity);
+            return Created($"api/companies/{companyID}/schedules/{scheduleId}/jobs/{jobId}/assignments/{entity.id}", entity);
         }
 
         [Authorize(Roles = "admin, worker")]
