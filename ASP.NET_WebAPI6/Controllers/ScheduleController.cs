@@ -45,7 +45,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            if (user.role != "guest")
+            if (user.fk_company < 0)
             {
                 int company;
                 List<Schedule> List;
@@ -98,7 +98,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            if (user.role != "guest")
+            if (user.fk_company < 0)
             {
                 int company;
                 Schedule schedule;
