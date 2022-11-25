@@ -11,7 +11,7 @@ using System.Net;
 namespace ASP.NET_WebAPI6.Controllers
 {
     [ApiController]
-    [Route("api/schedules/{scheduleId}/jobs")]
+    [Route("api/companies/{companyId}/schedules/{scheduleId}/jobs")]
     public class JobController : ControllerBase
     {
         private readonly DBContext DBContext;

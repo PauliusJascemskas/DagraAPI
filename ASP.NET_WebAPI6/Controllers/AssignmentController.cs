@@ -11,7 +11,7 @@ using System.Net;
 namespace ASP.NET_WebAPI6.Controllers
 {
     [ApiController]
-    [Route("api/schedules/{scheduleId}/jobs/{jobId}/assignments")]
+    [Route("api/companies/{companyId}/schedules/{scheduleId}/jobs/{jobId}/assignments")]
     public class AssignmentController : ControllerBase
     {
         private readonly DBContext DBContext;

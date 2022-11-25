@@ -14,8 +14,8 @@ using System.Security.Claims;
 namespace ASP.NET_WebAPI6.Controllers
 {
     [ApiController]
-    [Route("api/schedules")]
-    public class ScheduleController : ControllerBase            //todo fix schedule DTO
+    [Route("api/companies/{companyId}/schedules")]
+    public class ScheduleController : ControllerBase 
     {
         private readonly DBContext DBContext;
         private readonly IMapper _mapper;
@@ -140,6 +140,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
             int company = user.fk_company;
 
             var entity = new Schedule()

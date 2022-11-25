@@ -71,7 +71,7 @@ namespace DagraAPI.Controllers.Auth
                 }
                 else
                 {
-                    responseLogin.MessageList.Add("Tokia elektroninio pašto sistemoje nėra.");
+                    responseLogin.MessageList.Add("Tokio elektroninio pašto adreso sistemoje nėra.");
                 }
             }
             return responseLogin;
@@ -126,7 +126,6 @@ namespace DagraAPI.Controllers.Auth
         [Route("registeradmin")]
         public async Task<IActionResult> RegisterAdmin(RequestRegister requestRegister)
         {
-
             User User = await DBContext.Users.Select(
                     s => new User
                     {
@@ -157,35 +156,46 @@ namespace DagraAPI.Controllers.Auth
             DBContext.Users.Add(user);
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/register/", user);
+            return Created($"api/registeradmin/", user);
 
         }
 
-        [Authorize(Roles = "admin")]
-        [HttpGet]
-        [Route("gets")]
-        public async Task<ActionResult<List<User>>> Get()
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("registeradminnewcompany")]
+        public async Task<IActionResult> RegisterAdminNewCompany(RequestRegisterAdminToNoCompany requestRegisterAdminTo)
         {
-            var List = await DBContext.Users.Select(
-                s => new User
-                {
-                    id = s.id,
-                    name = s.name,
-                    fk_company = s.fk_company,
-                    email = s.email,
-                    role = s.role,
-                    password = s.password
-                }
-            ).ToListAsync();
+            User User = await DBContext.Users.Select(
+                    s => new User
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        email = s.email,
+                        role = s.role,
+                        password = s.password
+                    })
+                .FirstOrDefaultAsync(s => s.email == requestRegisterAdminTo.email);
 
-            if (List.Count < 0)
+            if (User != null)
             {
-                return NotFound();
+                return BadRequest("Toks vartotojas jau yra.");
             }
-            else
+            var password = requestRegisterAdminTo.password;
+            var hashedPassword = CryptoUtil.Hash(password);
+            var user = new User()
             {
-                return List;
-            }
+                name = requestRegisterAdminTo.name,
+                email = requestRegisterAdminTo.email,
+                password = hashedPassword,
+                role = "admin"
+            };
+
+            DBContext.Users.Add(user);
+            await DBContext.SaveChangesAsync();
+
+            return Created($"api/registeradminnewCompany/", user);
+
         }
     }
 }

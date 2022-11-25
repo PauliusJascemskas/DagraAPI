@@ -19,6 +19,7 @@ namespace DagraAPI
         public virtual DbSet<Job> Jobs { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Assignment> Assignments { get; set; }
+        public virtual DbSet<Company> Companies { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
