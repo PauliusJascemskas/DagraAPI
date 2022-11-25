@@ -46,7 +46,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            if (user.fk_company < 0)
+            if (user.fk_company > 0)
             {
                 int company_id;
                 company_id = user.fk_company;
@@ -110,7 +110,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            if (user.fk_company < 0)
+            if (user.fk_company > 0)
             {
                 if (companyId != user.fk_company)
                 {
