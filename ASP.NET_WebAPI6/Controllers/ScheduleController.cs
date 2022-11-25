@@ -110,7 +110,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult> InsertSchedule(Schedule schedule)
+        public async Task<ActionResult> InsertSchedule(int companyId, ScheduleDTO schedule)
         {
             User user = await DBContext.Users.Select(
             s => new User
@@ -129,14 +129,14 @@ namespace ASP.NET_WebAPI6.Controllers
             var entity = new Schedule()
             {
                 name = schedule.name,
-                fk_company = company,
+                fk_company = companyId,
                 admin = user.id
             };
 
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/schedules/{schedule.id}", entity);
+            return Created($"api/schedules/{entity.id}", entity);
 
             //var entity = new Schedule()
             //{
@@ -154,7 +154,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateSchedule(int id, ScheduleDTO schedule)
+        public async Task<ActionResult> UpdateSchedule(int companyid, int id, ScheduleDTO schedule)
         {
             User user = await DBContext.Users.Select(
             s => new User
@@ -185,7 +185,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteSchedule(int id)
+        public async Task<ActionResult> DeleteSchedule(int companyId, int id)
         {
             User user = await DBContext.Users.Select(
             s => new User

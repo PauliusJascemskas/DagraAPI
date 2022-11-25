@@ -4,7 +4,7 @@
     {
         //public int id { get; set; }
         public string name { get; set; }
-        public int fk_company { get; set; }
+        //public int fk_company { get; set; }
         public int admin { get; set; }
     }
     public class CreateScheduleDTO

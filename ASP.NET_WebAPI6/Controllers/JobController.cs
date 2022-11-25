@@ -23,7 +23,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Job>>> Get(int scheduleId)
+        public async Task<ActionResult<List<Job>>> Get(int companyId, int scheduleId)
         {
             var List = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
                 s => new Job
@@ -49,7 +49,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Job>> GetJobById(int scheduleId, int id)
+        public async Task<ActionResult<Job>> GetJobById(int companyId, int scheduleId, int id)
         {
             Job Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
                     s => new Job
@@ -75,7 +75,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpPost]
-        public async Task<ActionResult> InsertJob(int scheduleId, CreateJobDTO job)
+        public async Task<ActionResult> InsertJob(int companyId, int scheduleId, CreateJobDTO job)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -105,7 +105,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateJob(int scheduleId, int id, JobDTO job)
+        public async Task<ActionResult> UpdateJob(int companyId, int scheduleId, int id, JobDTO job)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -142,7 +142,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteJob(int scheduleId, int id)
+        public async Task<ActionResult> DeleteJob(int companyId, int scheduleId, int id)
         {
             User user = await DBContext.Users.Select(
                 s => new User

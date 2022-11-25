@@ -14,7 +14,7 @@ using System.Security.Claims;
 namespace ASP.NET_WebAPI6.Controllers
 {
     [ApiController]
-    [Route("api/company")]
+    [Route("api/companies")]
     public class CompanyController : ControllerBase  
     {
         private readonly DBContext DBContext;
@@ -109,7 +109,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult> InsertCompany(Company company)
+        public async Task<ActionResult> InsertCompany(CreateCompanyDTO company)
         {
             User user = await DBContext.Users.Select(
             s => new User
@@ -151,7 +151,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             DBContext.Companies.Add(entity);
             await DBContext.SaveChangesAsync();
-
+            
             Company comp2 = await DBContext.Companies.Select(
                 s => new Company
                 {

@@ -23,7 +23,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Assignment>>> Get(int scheduleId, int jobId)
+        public async Task<ActionResult<List<Assignment>>> Get(int companyID, int scheduleId, int jobId)
         {
             var List = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
                 s => new Assignment
@@ -49,7 +49,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Assignment>> GetAssignmentById(int scheduleId, int jobId, int id)
+        public async Task<ActionResult<Assignment>> GetAssignmentById(int companyID, int scheduleId, int jobId, int id)
         {
             Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
                     s => new Assignment
@@ -75,7 +75,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpPost]
-        public async Task<ActionResult> InsertAssignment(int scheduleId, int jobId, CreateAssignmentDTO assignment)
+        public async Task<ActionResult> InsertAssignment(int companyID, int scheduleId, int jobId, CreateAssignmentDTO assignment)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -106,7 +106,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAssignment(int scheduleId, int jobId, int id, AssignmentDTO assignment)
+        public async Task<ActionResult> UpdateAssignment(int companyID, int scheduleId, int jobId, int id, AssignmentDTO assignment)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -145,7 +145,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteAssignment(int scheduleId, int jobId, int id)
+        public async Task<ActionResult> DeleteAssignment(int companyID, int scheduleId, int jobId, int id)
         {
             User user = await DBContext.Users.Select(
                 s => new User
