@@ -71,16 +71,7 @@ namespace ASP.NET_WebAPI6.Controllers
             else
             {
                 List<Schedule> List;
-                int company = user.fk_company;
-                List = await DBContext.Schedules.Select(
-                s => new Schedule
-                {
-                    id = s.id,
-                    name = s.name,
-                    fk_company = s.fk_company,
-                    admin = s.admin,
-                }
-                ).ToListAsync();
+                List = await DBContext.Schedules.ToListAsync();
                 if (List.Count < 0)
                 {
                     return NotFound();
@@ -153,15 +144,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 if (user != null)
                 {
                     company = user.fk_company;
-                    schedule = await DBContext.Schedules.Select(
-                    s => new Schedule
-                    {
-                        id = s.id,
-                        name = s.name,
-                        fk_company = s.fk_company,
-                        admin = s.admin,
-                    }
-                    ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
+                    schedule = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
                     if (schedule == null)
                     {
                         return NotFound();

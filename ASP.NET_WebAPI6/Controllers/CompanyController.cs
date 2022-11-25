@@ -83,14 +83,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 //        fk_admin = s.fk_admin
                 //    })
                 //.FirstOrDefaultAsync(s => s.id == company_id);
-                List<Company> List = await DBContext.Companies.Select(
-                s => new Company
-                {
-                    id = s.id,
-                    name = s.name,
-                    code = s.code,
-                    fk_admin = s.fk_admin
-                }).ToListAsync();
+                List<Company> List = await DBContext.Companies.ToListAsync();
                 if (List == null)
                 {
                     return NotFound();
