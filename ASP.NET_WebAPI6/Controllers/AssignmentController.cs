@@ -39,7 +39,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyID != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -54,7 +54,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Schedule.fk_company != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
 
@@ -72,7 +72,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Job.fk_schedule != scheduleId)
             {
-                return NoContent();
+                return Forbid();
             }
 
             var List = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
@@ -114,7 +114,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyID != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -129,7 +129,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Schedule.fk_company != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
 
@@ -147,7 +147,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Job.fk_schedule != scheduleId)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
@@ -162,7 +162,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
-            if(Assignment.fk_job != jobId) { return NoContent(); } 
+            if(Assignment.fk_job != jobId) { return Forbid(); } 
             if (Assignment == null)
             {
                 return NotFound();
@@ -190,7 +190,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyID != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -205,7 +205,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Schedule.fk_company != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
 
@@ -223,7 +223,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Job.fk_schedule != scheduleId)
             {
-                return NoContent();
+                return Forbid();
             }
 
             var entity = new Assignment()
@@ -259,7 +259,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyID != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -274,7 +274,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Schedule.fk_company != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
 
@@ -292,7 +292,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Job.fk_schedule != scheduleId)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Assignment Assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
@@ -307,7 +307,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
-            if (Assignment.fk_job != jobId) { return NoContent(); }
+            if (Assignment.fk_job != jobId) { return Unauthorized(); }
             if(Assignment.creator!=user.id) { return Unauthorized(); }
 
             var entity = await DBContext.Assignments.Where(s => s.fk_job == jobId).FirstOrDefaultAsync(s => s.id == id);
@@ -320,7 +320,7 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 if(user.role == "Worker" && entity.creator != user.id)
                 {
-                    return Unauthorized();
+                    return Forbid();
                 }
                 entity.id = entity.id;
                 entity.name = assignment.name;
@@ -351,7 +351,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyID != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -366,7 +366,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Schedule.fk_company != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
 
@@ -384,7 +384,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (Job.fk_schedule != scheduleId)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Assignment assignment = await DBContext.Assignments.Where(s => s.fk_job == jobId).Select(
@@ -410,7 +410,7 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 if(user.role == "Worker" && assignment.creator != user.id)
                 {
-                    return Unauthorized();
+                    return Forbid();
                 }
                 var entity = new Assignment()
                 {

@@ -114,7 +114,7 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 if (companyId != user.fk_company)
                 {
-                    return NoContent();
+                    return Forbid();
                 }
             }
 
@@ -226,7 +226,7 @@ namespace ASP.NET_WebAPI6.Controllers
             int company_id = user.fk_company;
             if (id != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             if (company_id == 0)
@@ -235,7 +235,7 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             if(company_id != id)
             {
-                return NotFound();
+                return Forbid();
             }
             var entity = await DBContext.Companies.FirstOrDefaultAsync(s => s.id == id);
 
@@ -270,11 +270,11 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (id != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
             if (company_id != id)
             {
-                return NotFound();
+                return Forbid();
             }
             Company comp = await DBContext.Companies.Select(
                     s => new Company

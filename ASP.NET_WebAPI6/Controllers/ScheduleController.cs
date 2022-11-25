@@ -45,6 +45,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
             if (user.fk_company > 0)
             {
                 int company;
@@ -71,7 +72,14 @@ namespace ASP.NET_WebAPI6.Controllers
             else
             {
                 List<Schedule> List;
-                List = await DBContext.Schedules.ToListAsync();
+                List = await DBContext.Schedules.Where(s => s.fk_company > 0).Select(
+                s => new Schedule
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    admin = s.admin,
+                }).ToListAsync();
                 if (List.Count < 0)
                 {
                     return NotFound();
@@ -104,7 +112,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 Schedule schedule;
                 if (companyId != user.fk_company)
                 {
-                    return NoContent();
+                    return Forbid();
                 }
                 if (user != null)
                 {
@@ -120,7 +128,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
                     if (companyId != schedule.fk_company)
                     {
-                        return NoContent();
+                        return Forbid();
                     }
                     if (schedule == null)
                     {
@@ -139,7 +147,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 Schedule schedule;
                 if (companyId != user.fk_company)
                 {
-                    return NoContent();
+                    return Forbid();
                 }
                 if (user != null)
                 {
@@ -177,7 +185,7 @@ namespace ASP.NET_WebAPI6.Controllers
             int company = user.fk_company;
             if (companyId != user.fk_company)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             var entity = new Schedule()
@@ -188,7 +196,7 @@ namespace ASP.NET_WebAPI6.Controllers
             };
             if (companyId != entity.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
@@ -226,12 +234,12 @@ namespace ASP.NET_WebAPI6.Controllers
             int company = user.fk_company;
             if (companyid != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
             var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
             if (companyid != entity.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
             if (entity == null)
             {
@@ -264,7 +272,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyId != user.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             Schedule Schedule = await DBContext.Schedules.Select(
@@ -279,7 +287,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyId != Schedule.fk_company)
             {
-                return NoContent();
+                return Forbid();
             }
 
             if (Schedule == null)
