@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetCoreAuthJwtMySql.Models.Requests;
+using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Bcpg.Sig;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Net;
@@ -33,7 +35,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Company>>> Get()
+        public async Task<ActionResult<Company>> Get()
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -46,11 +48,10 @@ namespace ASP.NET_WebAPI6.Controllers
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            if (user.fk_company > 0)
+            if (user.fk_company != 0)
             {
                 int company_id;
                 company_id = user.fk_company;
-                List<Company> list = new List<Company>();
                 Company company = await DBContext.Companies.Select(
                     s => new Company
                     {
@@ -67,37 +68,18 @@ namespace ASP.NET_WebAPI6.Controllers
                 }
                 else
                 {
-                    list.Add(company);
-                    return list;
+                    return company;
                 }
             }
             else
             {
-                //List<Company> list = new List<Company>();
-                //Company company = await DBContext.Companies.Select(
-                //    s => new Company
-                //    {
-                //        id = s.id,
-                //        name = s.name,
-                //        code = s.code,
-                //        fk_admin = s.fk_admin
-                //    })
-                //.FirstOrDefaultAsync(s => s.id == company_id);
-                List<Company> List = await DBContext.Companies.ToListAsync();
-                if (List == null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return List;
-                }
+                return NoContent();
             }
         }
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<Company>>> GetCompanyById(int companyId)
+        public async Task<ActionResult<Company>> GetCompanyById(int companyId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -110,17 +92,10 @@ namespace ASP.NET_WebAPI6.Controllers
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            if (user.fk_company > 0)
-            {
-                if (companyId != user.fk_company)
-                {
-                    return Forbid();
-                }
-            }
+            if (companyId != user.fk_company)
+                return Forbid();
 
-            int company_id;
-            company_id = user.fk_company;
-            List<Company> list = new List<Company>();
+            int company_id = user.fk_company;
             Company company = await DBContext.Companies.Select(
                 s => new Company
                 {
@@ -128,8 +103,7 @@ namespace ASP.NET_WebAPI6.Controllers
                     name = s.name,
                     code = s.code,
                     fk_admin = s.fk_admin
-                })
-            .FirstOrDefaultAsync(s => s.id == company_id);
+                }).FirstOrDefaultAsync(s => s.id == companyId);
 
             if (company == null)
             {
@@ -137,8 +111,7 @@ namespace ASP.NET_WebAPI6.Controllers
             }
             else
             {
-                list.Add(company);
-                return list;
+                return company;
             }
         }
 
@@ -157,8 +130,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
 
-            int company_id = user.fk_company;
-            if(company_id != 0)
+            if(user.fk_company != 0)
             {
                 return BadRequest("Naudotojas jau priklausantis įmonei negali kurti naujos įmonės.");
             }
@@ -177,6 +149,7 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 return BadRequest("Įmonė su tokiu kodu jau egzistuoja sistemoje.");
             }
+
             var entity = new Company()
             {
                 name = company.name,
@@ -187,7 +160,7 @@ namespace ASP.NET_WebAPI6.Controllers
             DBContext.Companies.Add(entity);
             await DBContext.SaveChangesAsync();
             
-            Company comp2 = await DBContext.Companies.Select(
+            Company comp_new = await DBContext.Companies.Select(
                 s => new Company
                 {
                     id = s.id,
@@ -196,14 +169,14 @@ namespace ASP.NET_WebAPI6.Controllers
                     fk_admin = s.fk_admin
                 })
             .FirstOrDefaultAsync(s => s.code == company.code);
-            int newCompanyId = comp2.id;
 
+            int newCompanyId = comp_new.id;
             var entity2 = await DBContext.Users.FirstOrDefaultAsync(s => s.email == user.email);
             entity2.fk_company = newCompanyId;
 
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/company/{newCompanyId}", comp2);
+            return Created($"api/companies/{newCompanyId}", comp_new);
 
         }
 
@@ -226,16 +199,7 @@ namespace ASP.NET_WebAPI6.Controllers
             int company_id = user.fk_company;
             if (id != user.fk_company)
             {
-                return Forbid();
-            }
-
-            if (company_id == 0)
-            {
                 return NotFound();
-            }
-            if(company_id != id)
-            {
-                return Forbid();
             }
             var entity = await DBContext.Companies.FirstOrDefaultAsync(s => s.id == id);
 
@@ -251,7 +215,6 @@ namespace ASP.NET_WebAPI6.Controllers
             return Ok(entity);
         }
 
-
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteCompany(int id)
@@ -266,15 +229,11 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company_id = user.fk_company;
 
+            int company_id = user.fk_company;
             if (id != user.fk_company)
             {
-                return Forbid();
-            }
-            if (company_id != id)
-            {
-                return Forbid();
+                return NotFound();
             }
             Company comp = await DBContext.Companies.Select(
                     s => new Company
@@ -286,7 +245,6 @@ namespace ASP.NET_WebAPI6.Controllers
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
-
             if (comp == null)
             {
                 return NotFound();
@@ -297,11 +255,21 @@ namespace ASP.NET_WebAPI6.Controllers
             };
             DBContext.Companies.Attach(entity);
             DBContext.Companies.Remove(entity);
+
             var entity2 = await DBContext.Users.FirstOrDefaultAsync(s => s.email == user.email);
             entity2.fk_company = 0;
 
             await DBContext.SaveChangesAsync();
             return NoContent();
         }
+
+        public bool CheckComp()
+        {
+
+
+            return true;
+        }
+        
+
     }
 }

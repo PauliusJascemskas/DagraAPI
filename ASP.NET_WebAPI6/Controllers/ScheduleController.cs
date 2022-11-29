@@ -51,7 +51,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 int company;
                 List<Schedule> List;
                 company = user.fk_company;
-                List = await DBContext.Schedules.Where(s => s.fk_company == company).Select(
+                List = await DBContext.Schedules.Where(s => s.fk_company == user.fk_company).Select(
                 s => new Schedule
                 {
                     id = s.id,
@@ -106,6 +106,7 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
             if (user.fk_company > 0)
             {
                 int company;

@@ -399,8 +399,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
 
-            if (assignment.fk_job != jobId) { return NoContent(); }
-            if (assignment.creator != user.id) { return Unauthorized(); }
+            if (assignment.fk_job != jobId) { return Forbid(); }
+            if (assignment.creator != user.id) { return Forbid(); }
 
             if (assignment == null)
             {
