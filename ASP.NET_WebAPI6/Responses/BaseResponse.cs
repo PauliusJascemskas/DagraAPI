@@ -3,11 +3,11 @@ namespace NetCoreAuthJwtMySql.Models.Responses
 {
     public class BaseResponse
     {
-        public bool Success { get; set; }
-        public List<string> MessageList { get; set; }
+        //public bool Success { get; set; }
+        //public List<string> MessageList { get; set; }
         public BaseResponse()
         {
-            MessageList = new List<string>();
+            //MessageList = new List<string>();
         }
     }
 }

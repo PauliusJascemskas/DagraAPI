@@ -56,22 +56,24 @@ namespace DagraAPI.Controllers.Auth
                         var expireDate = DateTime.UtcNow.AddDays(1);
                         var timeStamp = DateUtil.ConvertToTimeStamp(expireDate);
                         var token = new JwtSecurityToken(
+                            issuer: _configuration["ValidIssuer"],
+                            audience: _configuration["ValidAudience"],
                             claims: claimList,
                             notBefore: DateTime.UtcNow,
                             expires: expireDate,
                             signingCredentials: creds);
-                        responseLogin.Success = true;
+                        //responseLogin.Success = true;
                         responseLogin.Token = new JwtSecurityTokenHandler().WriteToken(token);
-                        responseLogin.ExpireDate = timeStamp;
+                        //responseLogin.ExpireDate = timeStamp;
                     }
                     else
                     {
-                        responseLogin.MessageList.Add("Neteisingas slaptažodis.");
+                        //responseLogin.MessageList.Add("Neteisingas slaptažodis.");
                     }
                 }
                 else
                 {
-                    responseLogin.MessageList.Add("Tokio elektroninio pašto adreso sistemoje nėra.");
+                    //responseLogin.MessageList.Add("Tokio elektroninio pašto adreso sistemoje nėra.");
                 }
             }
             return responseLogin;
@@ -150,8 +152,8 @@ namespace DagraAPI.Controllers.Auth
                 name = requestRegister.name,
                 email = requestRegister.email,
                 password = hashedPassword,
-                role = "Worker",
-                fk_company = -1,
+                role = "Guest",
+                fk_company = requestRegister.fk_company,
             };
 
             DBContext.Users.Add(user);
@@ -234,7 +236,7 @@ namespace DagraAPI.Controllers.Auth
             DBContext.Users.Add(user);
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/registeradminnewCompany/", user);
+            return Created($"api/registeradminnewcompany/", user);
 
         }
     }

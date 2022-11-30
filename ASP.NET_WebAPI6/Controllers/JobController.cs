@@ -22,7 +22,7 @@ namespace ASP.NET_WebAPI6.Controllers
             this.DBContext = DBContext;
         }
 
-        [Authorize(Roles = "admin, worker")]
+        [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
         public async Task<ActionResult<List<Job>>> Get(int companyId, int scheduleId)
         {
@@ -36,11 +36,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
                      s => new Schedule
@@ -50,13 +47,11 @@ namespace ASP.NET_WebAPI6.Controllers
                          fk_company = s.fk_company,
                          admin = s.admin,
                      })
-                 .FirstOrDefaultAsync(s => s.id == scheduleId && s.fk_company == companyId);
+                 .FirstOrDefaultAsync(s => s.id == scheduleId);
+            if (Schedule == null || Schedule.fk_company != user.fk_company)
+                return NotFound();
 
-            if (Schedule.fk_company != user.fk_company)
-            {
-                return Forbid();
-            }
-            var List = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
+            var List = await DBContext.Jobs.Where(s => s.fk_schedule == Schedule.id).Select(
                 s => new Job
                 {
                     id = s.id,
@@ -67,19 +62,11 @@ namespace ASP.NET_WebAPI6.Controllers
                     fk_schedule = s.fk_schedule,
                 }
             ).ToListAsync();
-            
 
-            if (List.Count < 0)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return List;
-            }
+            return List;
         }
 
-        [Authorize(Roles = "admin, worker")]
+        [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Job>> GetJobById(int companyId, int scheduleId, int id)
         {
@@ -93,11 +80,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
                      s => new Schedule
@@ -107,13 +91,11 @@ namespace ASP.NET_WebAPI6.Controllers
                          fk_company = s.fk_company,
                          admin = s.admin,
                      })
-                 .FirstOrDefaultAsync(s => s.id == scheduleId && s.fk_company == companyId);
+                 .FirstOrDefaultAsync(s => s.id == scheduleId);
+            if (Schedule == null || Schedule.fk_company != user.fk_company)
+                return NotFound();
 
-            if (Schedule.fk_company != user.fk_company)
-            {
-                return Forbid();
-            }
-            Job Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
+            Job Job = await DBContext.Jobs.Select(
                     s => new Job
                     {
                         id = s.id,
@@ -124,18 +106,10 @@ namespace ASP.NET_WebAPI6.Controllers
                         fk_schedule = s.fk_schedule,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
-            if (Schedule.id != id)
-            {
-                return Forbid();
-            }
-            if (Job == null)
-            {
+            if (Job == null || Job.fk_schedule != Schedule.id)
                 return NotFound();
-            }
-            else
-            {
-                return Ok(Job);
-            }
+
+            return Ok(Job);
         }
 
         [Authorize(Roles = "admin, worker")]
@@ -152,11 +126,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
                      s => new Schedule
@@ -166,12 +137,9 @@ namespace ASP.NET_WebAPI6.Controllers
                          fk_company = s.fk_company,
                          admin = s.admin,
                      })
-                 .FirstOrDefaultAsync(s => s.id == scheduleId && s.fk_company == companyId);
-
-            if (Schedule.fk_company != user.fk_company)
-            {
-                return Forbid();
-            }
+                 .FirstOrDefaultAsync(s => s.id == scheduleId);
+            if (Schedule == null || Schedule.fk_company != user.fk_company)
+                return NotFound();
 
             var entity = new Job()
             {
@@ -181,11 +149,10 @@ namespace ASP.NET_WebAPI6.Controllers
                 end_date = job.end_date,
                 fk_schedule = scheduleId,
             };
-
             DBContext.Jobs.Add(entity);
             await DBContext.SaveChangesAsync();
 
-            return Created($"api/schedules/{scheduleId}/jobs/{entity.id}", entity);
+            return Created($"api/companies/{companyId}/schedules/{scheduleId}/jobs/{entity.id}", entity);
         }
 
         [Authorize(Roles = "admin, worker")]
@@ -202,11 +169,8 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
                      s => new Schedule
@@ -216,38 +180,25 @@ namespace ASP.NET_WebAPI6.Controllers
                          fk_company = s.fk_company,
                          admin = s.admin,
                      })
-                 .FirstOrDefaultAsync(s => s.id == scheduleId && s.fk_company == companyId);
+                 .FirstOrDefaultAsync(s => s.id == scheduleId);
+            if (Schedule == null || Schedule.fk_company != user.fk_company)
+                return NotFound();
 
-            if (Schedule.fk_company != user.fk_company)
-            {
-                return Forbid();
-            }
-            var entity = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).FirstOrDefaultAsync(s => s.id == id);
+            var entity = await DBContext.Jobs.FirstOrDefaultAsync(s => s.id == id);
+            if(entity == null || entity.fk_schedule != Schedule.id)
+                return NotFound();
 
-            if(entity.fk_schedule != scheduleId)
-            {
+            if (user.role == "worker" && entity.creator != user.id)
                 return Forbid();
-            }
-            if(entity.creator != user.id) { return Forbid(); }
-            if (entity == null)
-            {
-                return Forbid();
-            }
-            else
-            {
-                if (user.role == "Worker" && entity.creator != user.id)
-                {
-                    return Forbid();
-                }
-                entity.id = id;
-                entity.name = job.name;
-                entity.start_date = job.start_date;
-                entity.end_date = job.end_date;
-                entity.fk_schedule = scheduleId;
-                await DBContext.SaveChangesAsync();
-                return Ok(entity);
-            }
-            
+
+            entity.id = id;            
+            entity.name = job.name;
+            entity.start_date = job.start_date;
+            entity.end_date = job.end_date;
+            entity.fk_schedule = scheduleId;
+            await DBContext.SaveChangesAsync();
+
+            return Ok(entity);
         }
 
         [Authorize(Roles = "admin, worker")]
@@ -264,29 +215,22 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
-                     s => new Schedule
-                     {
-                         id = s.id,
-                         name = s.name,
-                         fk_company = s.fk_company,
-                         admin = s.admin,
-                     })
-                 .FirstOrDefaultAsync(s => s.id == scheduleId && s.fk_company == companyId);
+                s => new Schedule
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    admin = s.admin,
+                })
+                .FirstOrDefaultAsync(s => s.id == scheduleId);
+            if (Schedule == null || Schedule.fk_company != user.fk_company)
+                return NotFound();
 
-            if (Schedule.fk_company != user.fk_company)
-            {
-                return Forbid();
-            }
-
-            
-            Job Job = await DBContext.Jobs.Where(s => s.fk_schedule == scheduleId).Select(
+            Job Job = await DBContext.Jobs.Select(
                     s => new Job
                     {
                         id = s.id,
@@ -297,33 +241,21 @@ namespace ASP.NET_WebAPI6.Controllers
                         fk_schedule = s.fk_schedule,
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
-
-            if (Job.fk_schedule != scheduleId)
-            {
-                return Forbid();
-            }
-
-            if(Job.creator != user.id) { return Forbid(); }
-
-            if (Job == null)
-            {
+            if (Job == null || Job.fk_schedule != Schedule.id)
                 return NotFound();
-            }
-            else
+
+            if(user.role == "worker" && Job.creator != user.id) 
+                return Forbid(); 
+
+            var entity = new Job()
             {
-                if (user.role == "Worker" && Job.creator != user.id)
-                {
-                    return Forbid();
-                }
-                var entity = new Job()
-                {
-                    id = id
-                };
-                DBContext.Jobs.Attach(entity);
-                DBContext.Jobs.Remove(entity);
-                await DBContext.SaveChangesAsync();
-                return NoContent();
-            }
+                id = id
+            };
+            DBContext.Jobs.Attach(entity);
+            DBContext.Jobs.Remove(entity);
+            await DBContext.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

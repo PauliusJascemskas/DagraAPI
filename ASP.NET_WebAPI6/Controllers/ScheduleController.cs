@@ -33,7 +33,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles ="admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Schedule>>> Get()
+        public async Task<ActionResult<List<Schedule>>> Get(int companyId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -45,50 +45,21 @@ namespace ASP.NET_WebAPI6.Controllers
                     role = s.role,
                     password = s.password
                 }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            if (user.fk_company != companyId)
+                return NotFound();
 
-            if (user.fk_company > 0)
+            List<Schedule> List;
+            List = await DBContext.Schedules.Where(s => s.fk_company == user.fk_company).Select(
+            s => new Schedule
             {
-                int company;
-                List<Schedule> List;
-                company = user.fk_company;
-                List = await DBContext.Schedules.Where(s => s.fk_company == user.fk_company).Select(
-                s => new Schedule
-                {
-                    id = s.id,
-                    name = s.name,
-                    fk_company = s.fk_company,
-                    admin = s.admin,
-                }
-                ).ToListAsync();
-                if (List.Count < 0)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return List;
-                }
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                admin = s.admin,
             }
-            else
-            {
-                List<Schedule> List;
-                List = await DBContext.Schedules.Where(s => s.fk_company > 0).Select(
-                s => new Schedule
-                {
-                    id = s.id,
-                    name = s.name,
-                    fk_company = s.fk_company,
-                    admin = s.admin,
-                }).ToListAsync();
-                if (List.Count < 0)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return List;
-                }
-            }
+            ).ToListAsync();
+
+            return List;
         }
 
 
@@ -106,71 +77,31 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+            if (companyId != user.fk_company)
+                return NotFound();
 
-            if (user.fk_company > 0)
+            Schedule schedule = await DBContext.Schedules.Select(
+            s => new Schedule
             {
-                int company;
-                Schedule schedule;
-                if (companyId != user.fk_company)
-                {
-                    return Forbid();
-                }
-                if (user != null)
-                {
-                    company = user.fk_company;
-                    schedule = await DBContext.Schedules.Select(
-                    s => new Schedule
-                    {
-                        id = s.id,
-                        name = s.name,
-                        fk_company = s.fk_company,
-                        admin = s.admin,
-                    }
-                    ).FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-                    if (companyId != schedule.fk_company)
-                    {
-                        return Forbid();
-                    }
-                    if (schedule == null)
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        return schedule;
-                    }
-                }
-                else return NotFound();
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                admin = s.admin,
             }
-            else
-            {
-                int company;
-                Schedule schedule;
-                if (companyId != user.fk_company)
-                {
-                    return Forbid();
-                }
-                if (user != null)
-                {
-                    company = user.fk_company;
-                    schedule = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-                    if (schedule == null)
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        return schedule;
-                    }
-                }
-                else return NotFound();
-            }
+            ).FirstOrDefaultAsync(s => s.id == id);
+            if (schedule == null)
+                return NotFound();
+
+            if (companyId != schedule.fk_company)
+                return NotFound();
+            
+            return schedule;
         }
 
 
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult> InsertSchedule(int companyId, ScheduleDTO schedule)
+        public async Task<ActionResult> InsertSchedule(int companyId, CreateScheduleDTO newSchedule)
         {
             User user = await DBContext.Users.Select(
             s => new User
@@ -182,39 +113,46 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-
-            int company = user.fk_company;
             if (companyId != user.fk_company)
+                return NotFound();
+
+            User newAdmin = await DBContext.Users.Select(
+                s=> new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == newSchedule.admin_email);
+            if(newAdmin == null || newAdmin.fk_company != user.fk_company)
+                return BadRequest("Vartotojas su tokiu elektroniniu paštu neegzistuoja");
+            if (newAdmin.role != "admin")
+                return BadRequest("Darbuotojas negali būti adminas");
+
+            Schedule schedule = await DBContext.Schedules.Select(
+            s => new Schedule
             {
-                return Forbid();
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                admin = s.admin,
             }
+            ).FirstOrDefaultAsync(s => s.name == newSchedule.name);
+            if (schedule != null)
+                return BadRequest("Įmonėje jau yra sukurtas tvarkaraštis tokiu pavadinimu.");
 
             var entity = new Schedule()
             {
-                name = schedule.name,
+                name = newSchedule.name,
                 fk_company = companyId,
-                admin = user.id
+                admin = newAdmin.id
             };
-            if (companyId != entity.fk_company)
-            {
-                return Forbid();
-            }
             DBContext.Schedules.Add(entity);
             await DBContext.SaveChangesAsync();
 
             return Created($"api/schedules/{entity.id}", entity);
-
-            //var entity = new Schedule()
-            //{
-            //    name = schedule.name,
-            //    fk_company = schedule.fk_company,
-            //    admin = schedule.admin,
-            //};
-
-            //DBContext.Schedules.Add(entity);
-            //await DBContext.SaveChangesAsync();
-
-            //return Created($"api/schedules/{schedule.id}", entity);
         }
 
 
@@ -232,25 +170,35 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company = user.fk_company;
             if (companyid != user.fk_company)
-            {
-                return Forbid();
-            }
-            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-            if (companyid != entity.fk_company)
-            {
-                return Forbid();
-            }
-            if (entity == null)
-            {
                 return NotFound();
-            }
+
+            User newAdmin = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == schedule.admin_email);
+            if (newAdmin == null || newAdmin.fk_company != user.fk_company)
+                return BadRequest("Vartotojas su tokiu elektroniniu paštu neegzistuoja");
+            if (newAdmin.role != "admin")
+                return BadRequest("Darbuotojas negali būti adminas");
+
+            var entity = await DBContext.Schedules.FirstOrDefaultAsync(s => s.id == id);
+            if (entity == null)
+                return NotFound();
+            if (companyid != entity.fk_company)
+                return NotFound();
+
             entity.name = schedule.name;
             entity.fk_company = user.fk_company;          
-            entity.admin = user.id; 
-
+            entity.admin = newAdmin.id; 
             await DBContext.SaveChangesAsync();
+
             return Ok(entity);
         }
 
@@ -269,12 +217,8 @@ namespace ASP.NET_WebAPI6.Controllers
                 role = s.role,
                 password = s.password
             }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
-            int company = user.fk_company;
-
             if (companyId != user.fk_company)
-            {
-                return Forbid();
-            }
+                return NotFound();
 
             Schedule Schedule = await DBContext.Schedules.Select(
                     s => new Schedule
@@ -284,17 +228,12 @@ namespace ASP.NET_WebAPI6.Controllers
                         fk_company = s.fk_company,
                         admin = s.admin,
                     })
-                .FirstOrDefaultAsync(s => s.id == id && s.fk_company == company);
-
-            if (companyId != Schedule.fk_company)
-            {
-                return Forbid();
-            }
-
+                .FirstOrDefaultAsync(s => s.id == id);
             if (Schedule == null)
-            {
                 return NotFound();
-            }
+            if (companyId != Schedule.fk_company)
+                return NotFound();
+
             var entity = new Schedule()
             {
                 id = id
@@ -302,6 +241,7 @@ namespace ASP.NET_WebAPI6.Controllers
             DBContext.Schedules.Attach(entity);
             DBContext.Schedules.Remove(entity);
             await DBContext.SaveChangesAsync();
+
             return NoContent();
         }
     }

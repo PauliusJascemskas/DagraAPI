@@ -34,10 +34,12 @@ namespace DagraAPI
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
+                        ValidAudience = _configuration["ValidAudience"],
+                        ValidIssuer = _configuration["ValidIssuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecretKey"]))
                     };
                     options.Events = new JwtBearerEvents
