@@ -3,7 +3,7 @@ Projektas Dagra
 Sistemos paskirits- palengvinti įmonių administratorių tvarkaraščių sudarymą ir įmonių darbuotojams palengvinti tvarkaraščių pasiekiamumą.
 
 Veikimo principas:
-Įmonės atstovas, atsakingas už darbuotojų tvarkaraščius, sukuria admino paskyrą ir įmonę. Toliau administratorius gali kurti tvarkaraščius, darbus ir darbų priskyrimus darbuotojams. Kad darbuotojai būtų matomi sistemoje jie taip pat turi prisiregistruoti prie sistemos. 
+Įmonės atstovas, atsakingas už darbuotojų tvarkaraščius, sukuria admino paskyrą ir įmonę. Toliau administratorius gali kurti tvarkaraščius, darbus ir darbų priskyrimus darbuotojams. Kad darbuotojai būtų matomi sistemoje jie taip pat turi prisiregistruoti prie sistemos. Svečiai, gavus įmonės administratoriaus leidimą, gali stebėti tvarkaraščius, tačiua negali nieko keisti.
 
 Dagra turi 4 esybes:
 - Company (įmonė)
