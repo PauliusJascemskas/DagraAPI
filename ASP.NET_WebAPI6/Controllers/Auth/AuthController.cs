@@ -10,6 +10,7 @@ using NetCoreAuthJwtMySql.Models.Requests;
 using NetCoreAuthJwtMySql.Models.Responses;
 using NetCoreAuthJwtMySql.Utils;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.AccessControl;
 using System.Security.Claims;
 using System.Text;
 
@@ -51,6 +52,10 @@ namespace DagraAPI.Controllers.Auth
                         var claimList = new List<Claim>();
                         claimList.Add(new Claim(ClaimTypes.Name, existingUser.email));
                         claimList.Add(new Claim(ClaimTypes.Role, existingUser.role));
+                        Claim c1 = new Claim("role", existingUser.role);
+                        claimList.Add(c1);
+                        Claim c2 = new Claim("company", existingUser.fk_company.ToString());
+                        claimList.Add(c2);
                         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecretKey"]));
                         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                         var expireDate = DateTime.UtcNow.AddDays(1);
@@ -61,7 +66,7 @@ namespace DagraAPI.Controllers.Auth
                             claims: claimList,
                             notBefore: DateTime.UtcNow,
                             expires: expireDate,
-                            signingCredentials: creds);
+                            signingCredentials: creds) ;
                         //responseLogin.Success = true;
                         responseLogin.Token = new JwtSecurityTokenHandler().WriteToken(token);
                         //responseLogin.ExpireDate = timeStamp;
