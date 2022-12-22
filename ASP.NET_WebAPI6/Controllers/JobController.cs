@@ -111,12 +111,13 @@ namespace ASP.NET_WebAPI6.Controllers
             if (Schedule == null || Schedule.fk_company != user.fk_company)
                 return NotFound();
 
-            Job Job = await DBContext.Jobs.Select(
-                    s => new Job
+            OutputJobDTO Job = await DBContext.Jobs.Select(
+                    s => new OutputJobDTO
                     {
                         id = s.id,
                         name = s.name,
                         creator = s.creator,
+                        creator_email = "",
                         start_date = s.start_date,
                         end_date = s.end_date,
                         fk_schedule = s.fk_schedule,
@@ -124,6 +125,18 @@ namespace ASP.NET_WebAPI6.Controllers
                 .FirstOrDefaultAsync(s => s.id == id);
             if (Job == null || Job.fk_schedule != Schedule.id)
                 return NotFound();
+            User temp = await DBContext.Users.Select(
+                    s => new User
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        email = s.email,
+                        role = s.role,
+                        password = s.password
+                    }).FirstOrDefaultAsync(s => s.id == Job.creator);
+
+            Job.creator_email = temp.email;
 
             return Ok(Job);
         }

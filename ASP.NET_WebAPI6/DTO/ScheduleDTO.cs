@@ -20,4 +20,13 @@
         public string name { get; set; }
         public string admin_email { get; set; }
     }
+
+    public partial class OutputScheduleDTO
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public int fk_company { get; set; }
+        public int admin { get; set; }
+        public string admin_email { get;set; }
+    }
 }

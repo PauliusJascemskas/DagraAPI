@@ -35,7 +35,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<Company>> Get()
+        public async Task<ActionResult<OutputCompanyDTO>> Get()
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -52,13 +52,14 @@ namespace ASP.NET_WebAPI6.Controllers
             {
                 int company_id;
                 company_id = user.fk_company;
-                Company company = await DBContext.Companies.Select(
-                    s => new Company
+                OutputCompanyDTO company = await DBContext.Companies.Select(
+                    s => new OutputCompanyDTO
                     {
                         id = s.id,
                         name = s.name,
                         code = s.code,
-                        fk_admin = s.fk_admin
+                        fk_admin = s.fk_admin,
+                        fk_admin_email = ""
                     })
                 .FirstOrDefaultAsync(s => s.id == company_id);
 
@@ -68,6 +69,17 @@ namespace ASP.NET_WebAPI6.Controllers
                 }
                 else
                 {
+                    User temp = await DBContext.Users.Select(
+                    s => new User
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        email = s.email,
+                        role = s.role,
+                        password = s.password
+                    }).FirstOrDefaultAsync(s => s.id == company.fk_admin);
+                    company.fk_admin_email = temp.email;
                     return company;
                 }
             }
@@ -79,7 +91,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Company>> GetCompanyById(int id)
+        public async Task<ActionResult<OutputCompanyDTO>> GetCompanyById(int id)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -95,15 +107,27 @@ namespace ASP.NET_WebAPI6.Controllers
                 return NotFound();
 
             int company_id = user.fk_company;
-            Company company = await DBContext.Companies.Select(
-                s => new Company
+            OutputCompanyDTO company = await DBContext.Companies.Select(
+                s => new OutputCompanyDTO
                 {
                     id = s.id,
                     name = s.name,
                     code = s.code,
-                    fk_admin = s.fk_admin
+                    fk_admin = s.fk_admin,
+                    fk_admin_email = ""
                 }).FirstOrDefaultAsync(s => s.id == id);
 
+            User temp = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.id == company.fk_admin);
+            company.fk_admin_email = temp.email;
             if (company == null)
                 return NotFound();
             return company;

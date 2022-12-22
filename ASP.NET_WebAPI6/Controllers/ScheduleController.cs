@@ -33,7 +33,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles ="admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Schedule>>> Get(int companyId)
+        public async Task<ActionResult<List<OutputScheduleDTO>>> Get(int companyId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -48,24 +48,39 @@ namespace ASP.NET_WebAPI6.Controllers
             if (user.fk_company != companyId)
                 return NotFound();
 
-            List<Schedule> List;
+            List<OutputScheduleDTO> List;
             List = await DBContext.Schedules.Where(s => s.fk_company == user.fk_company).Select(
-            s => new Schedule
+            s => new OutputScheduleDTO
             {
                 id = s.id,
                 name = s.name,
                 fk_company = s.fk_company,
                 admin = s.admin,
+                admin_email = "",
             }
             ).ToListAsync();
 
+            foreach (var schedule in List)
+            {
+                User temp = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.id == schedule.admin);
+                schedule.admin_email = temp.email;
+            }
             return List;
         }
 
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Schedule>> GetScheduleById(int companyId, int id)
+        public async Task<ActionResult<OutputScheduleDTO>> GetScheduleById(int companyId, int id)
         {
             User user = await DBContext.Users.Select(
             s => new User
@@ -80,13 +95,14 @@ namespace ASP.NET_WebAPI6.Controllers
             if (companyId != user.fk_company)
                 return NotFound();
 
-            Schedule schedule = await DBContext.Schedules.Select(
-            s => new Schedule
+            OutputScheduleDTO schedule = await DBContext.Schedules.Select(
+            s => new OutputScheduleDTO
             {
                 id = s.id,
                 name = s.name,
                 fk_company = s.fk_company,
                 admin = s.admin,
+                admin_email = "",
             }
             ).FirstOrDefaultAsync(s => s.id == id);
             if (schedule == null)
@@ -94,7 +110,19 @@ namespace ASP.NET_WebAPI6.Controllers
 
             if (companyId != schedule.fk_company)
                 return NotFound();
-            
+
+            User temp = await DBContext.Users.Select(
+               s => new User
+               {
+                   id = s.id,
+                   name = s.name,
+                   fk_company = s.fk_company,
+                   email = s.email,
+                   role = s.role,
+                   password = s.password
+               }).FirstOrDefaultAsync(s => s.id == schedule.admin);
+            schedule.admin_email = temp.email;
+
             return schedule;
         }
 

@@ -24,7 +24,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Assignment>>> Get(int companyID, int scheduleId, int jobId)
+        public async Task<ActionResult<List<OutputAssignmentDTO>>> Get(int companyID, int scheduleId, int jobId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -66,24 +66,52 @@ namespace ASP.NET_WebAPI6.Controllers
                 return NotFound();
 
             var List = await DBContext.Assignments.Where(s => s.fk_job == Job.id).Select(
-                s => new Assignment
+                s => new OutputAssignmentDTO
                 {
                     id = s.id,
                     name = s.name,
                     creator = s.creator,
+                    creator_email = "",
                     start_time = s.start_time,
                     end_time = s.end_time,
                     fk_job = s.fk_job,
                     fk_assignee = s.fk_assignee,
+                    fk_assignee_email = "",
                 }
             ).ToListAsync();
 
+            foreach (var assignment in List)
+            {
+                User temp1 = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.id == assignment.creator);
+                assignment.creator_email = temp1.email;
+
+                User temp2 = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.id == assignment.fk_assignee);
+                assignment.fk_assignee_email = temp1.email;
+            }
             return List;
         }
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Assignment>> GetAssignmentById(int companyID, int scheduleId, int jobId, int id)
+        public async Task<ActionResult<OutputAssignmentDTO>> GetAssignmentById(int companyID, int scheduleId, int jobId, int id)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -124,20 +152,46 @@ namespace ASP.NET_WebAPI6.Controllers
             if (Job == null || Job.fk_schedule != Schedule.id)
                 return NotFound();
 
-            Assignment Assignment = await DBContext.Assignments.Select(
-                    s => new Assignment
+            OutputAssignmentDTO Assignment = await DBContext.Assignments.Select(
+                    s => new OutputAssignmentDTO
                     {
                         id = s.id,
                         name = s.name,
                         creator = s.creator,
+                        creator_email = "",
                         start_time = s.start_time,
                         end_time = s.end_time,
                         fk_job = s.fk_job,
                         fk_assignee = s.fk_assignee,
+                        fk_assignee_email = "",
                     })
                 .FirstOrDefaultAsync(s => s.id == id);
             if(Assignment == null || Assignment.fk_job != Job.id) 
-                return NotFound(); 
+                return NotFound();
+
+            User temp1 = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.id == Assignment.creator);
+            Assignment.creator_email = temp1.email;
+
+            User temp2 = await DBContext.Users.Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }).FirstOrDefaultAsync(s => s.id == Assignment.fk_assignee);
+            Assignment.fk_assignee_email = temp1.email;
 
             return Assignment;
         }
