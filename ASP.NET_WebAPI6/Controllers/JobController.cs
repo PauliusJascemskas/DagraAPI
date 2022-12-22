@@ -24,7 +24,7 @@ namespace ASP.NET_WebAPI6.Controllers
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet]
-        public async Task<ActionResult<List<Job>>> Get(int companyId, int scheduleId)
+        public async Task<ActionResult<List<OutputJobDTO>>> Get(int companyId, int scheduleId)
         {
             User user = await DBContext.Users.Select(
                 s => new User
@@ -52,23 +52,39 @@ namespace ASP.NET_WebAPI6.Controllers
                 return NotFound();
 
             var List = await DBContext.Jobs.Where(s => s.fk_schedule == Schedule.id).Select(
-                s => new Job
+                s => new OutputJobDTO
                 {
                     id = s.id,
                     name = s.name,
                     creator = s.creator,
+                    creator_email = "",
                     start_date = s.start_date,
                     end_date = s.end_date,
                     fk_schedule = s.fk_schedule,
                 }
             ).ToListAsync();
 
+            foreach (var item in List)
+            {
+                User temp = await DBContext.Users.Select(
+                    s => new User
+                    {
+                        id = s.id,
+                        name = s.name,
+                        fk_company = s.fk_company,
+                        email = s.email,
+                        role = s.role,
+                        password = s.password
+                    }).FirstOrDefaultAsync(s => s.id == item.creator);
+
+                item.creator_email = temp.email;
+            }
             return List;
         }
 
         [Authorize(Roles = "admin, worker, guest")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Job>> GetJobById(int companyId, int scheduleId, int id)
+        public async Task<ActionResult<OutputJobDTO>> GetJobById(int companyId, int scheduleId, int id)
         {
             User user = await DBContext.Users.Select(
                 s => new User

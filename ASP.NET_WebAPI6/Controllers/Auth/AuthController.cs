@@ -51,7 +51,6 @@ namespace DagraAPI.Controllers.Auth
                     {
                         var claimList = new List<Claim>();
                         claimList.Add(new Claim(ClaimTypes.Name, existingUser.email));
-                        claimList.Add(new Claim(ClaimTypes.Role, existingUser.role));
                         Claim c1 = new Claim("role", existingUser.role);
                         claimList.Add(c1);
                         Claim c2 = new Claim("company", existingUser.fk_company.ToString());
