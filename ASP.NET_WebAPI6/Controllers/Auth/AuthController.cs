@@ -279,5 +279,77 @@ namespace DagraAPI.Controllers.Auth
             }
             return List;
         }
+
+        [Authorize(Roles = "admin, worker")]
+        [HttpGet]
+        [Route("getadmins")]
+        public async Task<ActionResult<List<User>>> GetAdmins()
+        {
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
+            List<User> List;
+            List = await DBContext.Users.Where(s => s.fk_company == user.fk_company && s.role == "admin").Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }
+            ).ToListAsync();
+
+            foreach (var u in List)
+            {
+                u.password = "";
+            }
+            return List;
+        }
+
+        [Authorize(Roles = "admin, worker")]
+        [HttpGet]
+        [Route("getguests")]
+        public async Task<ActionResult<List<User>>> GetGuests()
+        {
+            User user = await DBContext.Users.Select(
+                s => new User
+                {
+                    id = s.id,
+                    name = s.name,
+                    fk_company = s.fk_company,
+                    email = s.email,
+                    role = s.role,
+                    password = s.password
+                }).FirstOrDefaultAsync(s => s.email == User.Identity.Name);
+
+            List<User> List;
+            List = await DBContext.Users.Where(s => s.fk_company == user.fk_company && s.role == "guest").Select(
+            s => new User
+            {
+                id = s.id,
+                name = s.name,
+                fk_company = s.fk_company,
+                email = s.email,
+                role = s.role,
+                password = s.password
+            }
+            ).ToListAsync();
+
+            foreach (var u in List)
+            {
+                u.password = "";
+            }
+            return List;
+        }
     }
 }
